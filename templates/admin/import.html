@@ -1,0 +1,30 @@
+{% extends 'admin/base_admin.html' %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-upload"></i> {{ t.import_csv }} — {{ quiz.title_ar if lang=='ar' else quiz.title_fr }}</h4>
+
+<div class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+  <p class="text-muted small">
+    {% if lang == 'ar' %}
+    يجب أن يحتوي ملف CSV على الأعمدة التالية: <code>question, choice1, choice2, choice3, choice4, correct_index, explanation</code><br>
+    حيث <code>correct_index</code> هو رقم الاختيار الصحيح بدءًا من 0 (0 = الاختيار الأول).
+    {% else %}
+    Le fichier CSV doit contenir les colonnes : <code>question, choice1, choice2, choice3, choice4, correct_index, explanation</code><br>
+    <code>correct_index</code> est l'indice de la bonne réponse à partir de 0 (0 = premier choix).
+    {% endif %}
+  </p>
+  <a href="{{ url_for('admin_sample_csv') }}" class="btn btn-outline-secondary btn-sm w-auto"><i class="bi bi-download"></i> {{ t.download_sample }}</a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 p-4">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label">{{ t.choose_file }}</label>
+      <input type="file" name="csv_file" accept=".csv" class="form-control" required>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom"><i class="bi bi-upload"></i> {{ t.import }}</button>
+      <a href="{{ url_for('admin_quiz_questions', quiz_id=quiz.id) }}" class="btn btn-outline-secondary">{{ t.cancel }}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

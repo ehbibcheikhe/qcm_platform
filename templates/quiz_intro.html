@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7">
+    <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+      <span class="badge rounded-pill mb-3 mx-auto badge-difficulty-{{ quiz.difficulty }}" style="width:fit-content">{{ t[quiz.difficulty] }}</span>
+      <h3 class="fw-bold">{{ quiz.title_ar if lang=='ar' else quiz.title_fr }}</h3>
+      <p class="text-muted">{{ quiz.description_ar if lang=='ar' else quiz.description_fr }}</p>
+      <div class="row g-3 my-3">
+        <div class="col-4"><div class="stat-card"><div class="num">{{ quiz.question_count }}</div><small class="text-muted">{{ t.questions }}</small></div></div>
+        <div class="col-4"><div class="stat-card"><div class="num">{{ quiz.duration_minutes }}</div><small class="text-muted">{{ t.minutes }}</small></div></div>
+        <div class="col-4"><div class="stat-card"><div class="num">{{ quiz.best_score }}%</div><small class="text-muted">{{ t.best_score }}</small></div></div>
+      </div>
+      <a href="{{ url_for('quiz_take', quiz_id=quiz.id) }}" class="btn btn-primary-custom btn-lg mt-2">
+        <i class="bi bi-play-fill"></i> {{ t.start_quiz }}
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

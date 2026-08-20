@@ -1,0 +1,54 @@
+{% extends 'admin/base_admin.html' %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4">{{ t.edit if quiz else t.add_quiz }}</h4>
+<div class="card border-0 shadow-sm rounded-4 p-4">
+  <form method="POST">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label">{{ t.title }} (AR)</label>
+        <input type="text" name="title_ar" class="form-control" value="{{ quiz.title_ar if quiz else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ t.title }} (FR)</label>
+        <input type="text" name="title_fr" class="form-control" value="{{ quiz.title_fr if quiz else '' }}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ t.description }} (AR)</label>
+        <textarea name="description_ar" class="form-control" rows="2">{{ quiz.description_ar if quiz else '' }}</textarea>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">{{ t.description }} (FR)</label>
+        <textarea name="description_fr" class="form-control" rows="2">{{ quiz.description_fr if quiz else '' }}</textarea>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ t.category }}</label>
+        <select name="category_id" class="form-select" required>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if quiz and quiz.category_id==c.id %}selected{% endif %}>{{ c.name_ar if lang=='ar' else c.name_fr }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ t.difficulty }}</label>
+        <select name="difficulty" class="form-select">
+          <option value="easy" {% if quiz and quiz.difficulty=='easy' %}selected{% endif %}>{{ t.easy }}</option>
+          <option value="medium" {% if not quiz or quiz.difficulty=='medium' %}selected{% endif %}>{{ t.medium }}</option>
+          <option value="hard" {% if quiz and quiz.difficulty=='hard' %}selected{% endif %}>{{ t.hard }}</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">{{ t.duration }}</label>
+        <input type="number" name="duration_minutes" class="form-control" min="1" value="{{ quiz.duration_minutes if quiz else 10 }}">
+      </div>
+      <div class="col-12 form-check">
+        <input type="checkbox" name="is_published" class="form-check-input" id="pub" {% if not quiz or quiz.is_published %}checked{% endif %}>
+        <label class="form-check-label" for="pub">{{ t.published }}</label>
+      </div>
+    </div>
+    <div class="mt-4 d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">{{ t.save }}</button>
+      <a href="{{ url_for('admin_quizzes') }}" class="btn btn-outline-secondary">{{ t.cancel }}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

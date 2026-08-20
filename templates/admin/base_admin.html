@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+  <div class="col-md-3 mb-3">
+    <div class="admin-sidebar">
+      <a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint=='admin_dashboard' %}active{% endif %}"><i class="bi bi-speedometer2"></i> {{ t.stats }}</a>
+      <a href="{{ url_for('admin_categories') }}" class="{% if request.endpoint=='admin_categories' %}active{% endif %}"><i class="bi bi-tags"></i> {{ t.manage_categories }}</a>
+      <a href="{{ url_for('admin_quizzes') }}" class="{% if 'quiz' in request.endpoint %}active{% endif %}"><i class="bi bi-collection"></i> {{ t.manage_quizzes }}</a>
+      <a href="{{ url_for('admin_users') }}" class="{% if request.endpoint=='admin_users' %}active{% endif %}"><i class="bi bi-people"></i> {{ t.manage_users }}</a>
+      <a href="{{ url_for('admin_results') }}" class="{% if request.endpoint=='admin_results' %}active{% endif %}"><i class="bi bi-bar-chart"></i> {{ t.all_results }}</a>
+      <hr>
+      <a href="{{ url_for('index') }}"><i class="bi bi-box-arrow-left"></i> {{ t.back_home }}</a>
+    </div>
+  </div>
+  <div class="col-md-9">
+    {% block admin_content %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm rounded-4 p-4 text-center mb-4">
+      <h4 class="fw-bold mb-1">{{ result.quiz.title_ar if lang=='ar' else result.quiz.title_fr }}</h4>
+      <div class="score-circle my-3" style="--pct: {{ result.percentage }}">
+        <div class="inner">
+          <span class="fs-2 fw-bold text-primary">{{ result.percentage }}%</span>
+          <small class="text-muted">{{ t.your_score }}</small>
+        </div>
+      </div>
+      <div class="row g-3 mt-2">
+        <div class="col-4"><div class="stat-card"><div class="num text-success">{{ result.correct_count }}</div><small class="text-muted">{{ t.correct_answers }}</small></div></div>
+        <div class="col-4"><div class="stat-card"><div class="num text-danger">{{ result.total_questions - result.correct_count }}</div><small class="text-muted">{{ t.wrong_answers }}</small></div></div>
+        <div class="col-4"><div class="stat-card"><div class="num">{{ (result.time_taken_seconds // 60) }}:{{ '%02d' % (result.time_taken_seconds % 60) }}</div><small class="text-muted">{{ t.time_taken }}</small></div></div>
+      </div>
+      <div class="d-flex gap-2 justify-content-center mt-4">
+        <a href="{{ url_for('quiz_intro', quiz_id=result.quiz.id) }}" class="btn btn-primary-custom"><i class="bi bi-arrow-repeat"></i> {{ t.retry_quiz }}</a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">{{ t.back_home }}</a>
+      </div>
+    </div>
+
+    <h5 class="fw-bold mb-3">{{ t.review_answers }}</h5>
+    {% for ans in result.answers %}
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-3">
+      <p class="fw-bold mb-2">{{ loop.index }}. {{ ans.question.text }}</p>
+      {% for c in ans.question.choices %}
+        <div class="choice-option
+          {% if c.is_correct %}correct{% elif ans.choice_id == c.id and not c.is_correct %}incorrect{% endif %}">
+          {{ c.text }}
+          {% if c.is_correct %}<i class="bi bi-check-circle-fill text-success"></i>{% endif %}
+          {% if ans.choice_id == c.id and not c.is_correct %}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+        </div>
+      {% endfor %}
+      {% if ans.question.explanation %}
+      <div class="alert alert-info mt-2 mb-0 small"><i class="bi bi-info-circle"></i> {{ ans.question.explanation }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

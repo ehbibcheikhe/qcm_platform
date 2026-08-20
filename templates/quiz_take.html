@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span id="q-progress-label" class="fw-bold text-muted"></span>
+      <span class="timer-badge text-primary"><i class="bi bi-stopwatch"></i> <span id="timer">--:--</span></span>
+    </div>
+    <div class="progress progress-thin mb-4">
+      <div id="progress-bar" class="progress-bar bg-primary" style="width:0%"></div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+      <h5 class="fw-bold mb-4" id="question-text"></h5>
+      <div id="choices-container"></div>
+    </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <button id="btn-prev" class="btn btn-outline-secondary"><i class="bi bi-arrow-{{ 'right' if dir=='rtl' else 'left' }}"></i> {{ t.previous }}</button>
+      <button id="btn-next" class="btn btn-primary-custom">{{ t.next }} <i class="bi bi-arrow-{{ 'left' if dir=='rtl' else 'right' }}"></i></button>
+      <button id="btn-finish" class="btn btn-success d-none"><i class="bi bi-check-circle"></i> {{ t.finish }}</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = {{ questions_json | safe }};
+const QUIZ_ID = {{ quiz.id }};
+const DURATION_SECONDS = {{ quiz.duration_minutes }} * 60;
+const T = {
+  question: "{{ t.question }}", of: "{{ t.of }}"
+};
+
+let currentIndex = 0;
+let answers = {};
+let remainingSeconds = DURATION_SECONDS;
+let startTime = Date.now();
+let timerInterval;
+
+function renderQuestion() {
+  const q = QUESTIONS[currentIndex];
+  document.getElementById('question-text').textContent = q.text;
+  document.getElementById('q-progress-label').textContent =
+    `${T.question} ${currentIndex + 1} ${T.of} ${QUESTIONS.length}`;
+  document.getElementById('progress-bar').style.width =
+    `${((currentIndex + 1) / QUESTIONS.length) * 100}%`;
+
+  const container = document.getElementById('choices-container');
+  container.innerHTML = '';
+  q.choices.forEach(choice => {
+    const label = document.createElement('label');
+    label.className = 'choice-option' + (answers[q.id] == choice.id ? ' selected' : '');
+    label.innerHTML = `<input type="radio" name="choice" value="${choice.id}"> ${choice.text}`;
+    label.onclick = () => {
+      answers[q.id] = choice.id;
+      renderQuestion();
+    };
+    container.appendChild(label);
+  });
+
+  document.getElementById('btn-prev').disabled = currentIndex === 0;
+  const isLast = currentIndex === QUESTIONS.length - 1;
+  document.getElementById('btn-next').classList.toggle('d-none', isLast);
+  document.getElementById('btn-finish').classList.toggle('d-none', !isLast);
+}
+
+document.getElementById('btn-next').onclick = () => {
+  if (currentIndex < QUESTIONS.length - 1) { currentIndex++; renderQuestion(); }
+};
+document.getElementById('btn-prev').onclick = () => {
+  if (currentIndex > 0) { currentIndex--; renderQuestion(); }
+};
+document.getElementById('btn-finish').onclick = submitQuiz;
+
+function updateTimerDisplay() {
+  const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+  const s = (remainingSeconds % 60).toString().padStart(2, '0');
+  document.getElementById('timer').textContent = `${m}:${s}`;
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    remainingSeconds--;
+    updateTimerDisplay();
+    if (remainingSeconds <= 0) {
+      clearInterval(timerInterval);
+      submitQuiz();
+    }
+  }, 1000);
+}
+
+function submitQuiz() {
+  clearInterval(timerInterval);
+  const timeTaken = Math.round((Date.now() - startTime) / 1000);
+  document.getElementById('btn-finish').disabled = true;
+  document.getElementById('btn-finish').innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+  fetch(`/quiz/${QUIZ_ID}/submit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ answers: answers, time_taken: timeTaken })
+  })
+  .then(res => res.json())
+  .then(data => { window.location.href = `/result/${data.result_id}`; });
+}
+
+renderQuestion();
+startTimer();
+window.addEventListener('beforeunload', (e) => {
+  e.preventDefault();
+  e.returnValue = '';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'admin/base_admin.html' %}
+{% block admin_content %}
+<h4 class="fw-bold mb-4">{{ t.edit if question else t.add_question }}</h4>
+<div class="card border-0 shadow-sm rounded-4 p-4">
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">{{ t.question_text }}</label>
+      <textarea name="text" class="form-control" rows="2" required>{{ question.text if question else '' }}</textarea>
+    </div>
+
+    <label class="form-label">{{ t.choices }} ({{ t.correct_choice }})</label>
+    {% set existing = question.choices if question else [] %}
+    {% for i in range(4) %}
+    <div class="input-group mb-2">
+      <div class="input-group-text">
+        <input class="form-check-input mt-0" type="radio" name="correct_index" value="{{ i }}"
+          {% if existing|length > i and existing[i].is_correct %}checked{% elif not existing and i == 0 %}checked{% endif %}>
+      </div>
+      <input type="text" name="choice_text" class="form-control" placeholder="{{ t.choices }} {{ i+1 }}"
+        value="{{ existing[i].text if existing|length > i else '' }}" {% if i < 2 %}required{% endif %}>
+    </div>
+    {% endfor %}
+
+    <div class="mb-3 mt-3">
+      <label class="form-label">{{ t.explanation }}</label>
+      <textarea name="explanation" class="form-control" rows="2">{{ question.explanation if question else '' }}</textarea>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">{{ t.save }}</button>
+      <a href="{{ url_for('admin_quiz_questions', quiz_id=quiz.id) }}" class="btn btn-outline-secondary">{{ t.cancel }}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

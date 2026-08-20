@@ -42,7 +42,7 @@ def admin_required(f):
 
 TRANSLATIONS = {
     'ar': {
-        'app_name': 'منصة QCM', 'home': 'الرئيسية', 'login': 'تسجيل الدخول', 'register': 'إنشاء حساب',
+        'app_name': 'منصة تميز', 'home': 'الرئيسية', 'login': 'تسجيل الدخول', 'register': 'إنشاء حساب',
         'logout': 'تسجيل الخروج', 'dashboard': 'لوحتي', 'leaderboard': 'الترتيب العام', 'admin_panel': 'لوحة الإدارة',
         'welcome_title': 'تدرّب على المسابقات وطوّر مستواك', 'welcome_sub': 'مجموعة متنوعة من الاختبارات في مجالات مختلفة، اختبر معلوماتك وقارن نتائجك',
         'all_categories': 'كل التصنيفات', 'questions': 'أسئلة', 'minutes': 'دقيقة', 'difficulty': 'الصعوبة',
@@ -66,10 +66,10 @@ TRANSLATIONS = {
         'admin': 'مسؤول', 'user': 'مستخدم', 'make_admin': 'جعله مسؤولًا', 'remove_admin': 'إزالة الصلاحية',
         'confirm_delete': 'هل أنت متأكد من الحذف؟', 'stats': 'إحصائيات', 'total_users': 'المستخدمون',
         'total_quizzes': 'المسابقات', 'total_questions': 'الأسئلة', 'total_attempts': 'المحاولات',
-        'recent_activity': 'النشاط الأخير', 'no_data': 'لا توجد بيانات',
+        'online_users': 'المستخدمون المتواجدون الآن', 'recent_activity': 'النشاط الأخير', 'no_data': 'لا توجد بيانات',
     },
     'fr': {
-        'app_name': 'Plateforme QCM', 'home': 'Accueil', 'login': 'Connexion', 'register': 'S\'inscrire',
+        'app_name': 'Plateforme Tamayuz', 'home': 'Accueil', 'login': 'Connexion', 'register': 'S\'inscrire',
         'logout': 'Déconnexion', 'dashboard': 'Mon espace', 'leaderboard': 'Classement', 'admin_panel': 'Administration',
         'welcome_title': 'Entraînez-vous et progressez', 'welcome_sub': 'Une variété de quiz dans différents domaines, testez vos connaissances et comparez vos résultats',
         'all_categories': 'Toutes les catégories', 'questions': 'questions', 'minutes': 'min', 'difficulty': 'Difficulté',
@@ -93,7 +93,7 @@ TRANSLATIONS = {
         'admin': 'Admin', 'user': 'Utilisateur', 'make_admin': 'Rendre admin', 'remove_admin': 'Retirer les droits',
         'confirm_delete': 'Confirmer la suppression ?', 'stats': 'Statistiques', 'total_users': 'Utilisateurs',
         'total_quizzes': 'Quiz', 'total_questions': 'Questions', 'total_attempts': 'Tentatives',
-        'recent_activity': 'Activité récente', 'no_data': 'Aucune donnée',
+        'online_users': 'Utilisateurs en ligne', 'recent_activity': 'Activité récente', 'no_data': 'Aucune donnée',
     }
 }
 
@@ -267,11 +267,19 @@ def leaderboard():
 @login_required
 @admin_required
 def admin_dashboard():
+    # عد المستخدمين المتواجدين حالياً (في آخر 5 دقائق)
+    from datetime import timedelta
+    five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
+    online_users = db.session.query(db.func.count(db.distinct(User.id))).join(Result).filter(
+        Result.created_at >= five_minutes_ago
+    ).scalar() or 0
+    
     stats = {
         'users': User.query.filter_by(is_admin=False).count(),
         'quizzes': Quiz.query.count(),
         'questions': Question.query.count(),
         'results': Result.query.count(),
+        'online_users': online_users,
     }
     recent_results = Result.query.order_by(Result.created_at.desc()).limit(10).all()
     return render_template('admin/dashboard.html', stats=stats, recent_results=recent_results)
